@@ -1,0 +1,3 @@
+is_global = true
+build_property.RootNamespace = Foundation.CodeGen
+build_property.ProjectDir = /Users/ryanboyer/Downloads/Foundation.CodeGen/Foundation.CodeGen/
