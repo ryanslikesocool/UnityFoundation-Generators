@@ -4,18 +4,29 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 
 namespace FoundationGenerators {
 	[Generator]
-	public class EditorMutableGenerator : ISourceGenerator {
-		private const string ATTRIBUTE_NAME = "EditorMutableAttribute";
+	public class GetterGenerator : ISourceGenerator {
+		private const string ATTRIBUTE_NAME = "GetterAttribute";
 
 		private const string ATTRIBUTE_TEXT = @"
 using System;
 
+/// <summary>
+/// Generate a property getter with the given access level.
+/// </summary>
 [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-internal sealed class EditorMutableAttribute : Attribute {
-	public EditorMutableAttribute() { }
+internal sealed class GetterAttribute : Attribute {
+	public enum AccessLevel {
+		Private = 0,
+		Protected = 1,
+		Internal = 2,
+		Public = 3
+	}
+
+	public GetterAttribute(AccessLevel accessLevel = AccessLevel.Public) { }
 }
 ";
 
@@ -35,7 +46,7 @@ internal sealed class EditorMutableAttribute : Attribute {
 
 			foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in receiver.Fields.GroupBy<IFieldSymbol, INamedTypeSymbol>(f => f.ContainingType, SymbolEqualityComparer.Default)) {
 				var classSource = ProcessClass(group.Key, group, attributeSymbol);
-				context.AddSource($"{group.Key.Name}_EditorMutable_gen.cs", SourceText.From(classSource, Encoding.UTF8));
+				context.AddSource($"{group.Key.Name}_Getter_gen.cs", SourceText.From(classSource, Encoding.UTF8));
 			}
 		}
 
@@ -65,22 +76,46 @@ internal sealed class EditorMutableAttribute : Attribute {
 		}
 
 		private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol) {
-			var fieldName = fieldSymbol.Name;
+			string fieldName = fieldSymbol.Name;
 			ITypeSymbol fieldType = fieldSymbol.Type;
 
 			AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad
 				=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
-			var publicFieldName = fieldName;
+			string accessLevel = ProcessAttribute(attributeData);
+			string publicFieldName = ProcessFieldName(fieldName);
+
+			source.AppendLine($"{accessLevel} {fieldType} {publicFieldName} => {fieldName};");
+		}
+
+		private string ProcessFieldName(in string fieldName) {
 			if (fieldName[0] == '_') {
 				// _field -> field
-				publicFieldName = fieldName.Substring(1);
+				return fieldName.Substring(1);
 			} else {
 				// field -> Field
-				publicFieldName = $"{fieldName[0].ToString().ToUpper()}{fieldName.Substring(1)}";
+				return $"{fieldName[0].ToString().ToUpper()}{fieldName.Substring(1)}";
+			}
+		}
+
+		private string ProcessAttribute(AttributeData attributeData) {
+			if (
+				attributeData.ConstructorArguments.Length > 0
+				&& int.TryParse(attributeData.ConstructorArguments[0].Value.ToString(), out var enumValue)
+			) {
+				switch (enumValue) {
+					case 0:
+						return "private";
+					case 1:
+						return "protected";
+					case 2:
+						return "internal";
+					case 3:
+						return "public";
+				}
 			}
 
-			source.AppendLine($"public {fieldType} {publicFieldName} => {fieldName};");
+			return string.Empty;
 		}
 
 		internal class SyntaxReceiver : ISyntaxContextReceiver {

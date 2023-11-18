@@ -13,12 +13,18 @@ namespace FoundationGenerators {
 		private const string ATTRIBUTE_TEXT = @"
 using System;
 
+/// <summary>
+/// Automatically assign components on a <c>MonoBehaviour</c>.
+/// <remarks>
+/// You must call <c>InitializeComponents()</c> on the <c>MonoBehaviour</c> for components to be assigned.
+/// </remarks>
+/// </summary>
 [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
 internal sealed class GetComponentAttribute : Attribute {
 	public enum TargetType {
-		This,
-		Parent,
-		Child
+		This = 0,
+		Parent = 1,
+		Child = 2
 	}
 
 	public GetComponentAttribute(TargetType targetType = TargetType.This) { }
@@ -72,13 +78,13 @@ internal sealed class GetComponentAttribute : Attribute {
 		}
 
 		private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol) {
-			var fieldName = fieldSymbol.Name;
+			string fieldName = fieldSymbol.Name;
 			ITypeSymbol fieldType = fieldSymbol.Type;
 
 			AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad
 				=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
-			var methodType = ProcessAttribute(attributeData);
+			string methodType = ProcessAttribute(attributeData);
 
 			source.AppendLine($@"{fieldName} = {methodType}<{fieldType}>();");
 		}
