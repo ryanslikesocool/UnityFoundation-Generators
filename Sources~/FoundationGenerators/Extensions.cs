@@ -28,7 +28,7 @@ namespace Foundation.Generators {
 		}
 
 		public static string WrapNamespace(
-			INamedTypeSymbol classSymbol,
+			this INamedTypeSymbol classSymbol,
 			Action<StringBuilder> content
 		) {
 			var source = new StringBuilder();
@@ -45,6 +45,22 @@ namespace Foundation.Generators {
 			}
 
 			return source.ToString();
+		}
+
+		public static string ProcessAccessLevel(this TypedConstant argument) {
+			if (int.TryParse(argument.Value.ToString(), out var enumValue)) {
+				switch (enumValue) {
+					case 0:
+						return "private";
+					case 1:
+						return "protected";
+					case 2:
+						return "internal";
+					case 3:
+						return "public";
+				}
+			}
+			return string.Empty;
 		}
 	}
 }

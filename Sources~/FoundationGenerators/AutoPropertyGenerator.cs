@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Foundation.Generators {
 	[Generator]
-	public class AutoPropertyGenerator : ISourceGenerator {
+	public sealed class AutoPropertyGenerator : ISourceGenerator {
 		private const string ATTRIBUTE_NAME = "AutoPropertyAttribute";
 
 		private const string FILE_TEXT = @"
@@ -56,7 +56,7 @@ internal sealed class AutoPropertyAttribute : Attribute {
 		}
 
 		private string ProcessClass(INamedTypeSymbol classSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
-			=> Extensions.WrapNamespace(classSymbol, (StringBuilder source) => {
+			=> classSymbol.WrapNamespace((StringBuilder source) => {
 				source.AppendLine($"public partial class {classSymbol.Name} {{");
 
 				foreach (IFieldSymbol fieldSymbol in fields) {
@@ -76,10 +76,6 @@ internal sealed class AutoPropertyAttribute : Attribute {
 
 			ProcessAttribute(attributeData, out string accessLevel, out bool hasGetter, out bool hasSetter);
 			string publicFieldName = Extensions.PromoteFieldName(fieldName);
-
-			//for (int i = 0; i < attributeData.ConstructorArguments.Length; i++) {
-			//	source.AppendLine(attributeData.ConstructorArguments[i].Type.ToDisplayString());
-			//}
 
 			if (hasGetter && hasSetter) {
 				source.AppendLine($@"{accessLevel} {fieldType} {publicFieldName} {{
@@ -107,29 +103,12 @@ internal sealed class AutoPropertyAttribute : Attribute {
 
 			for (int i = 0; i < attributeData.ConstructorArguments.Length; i++) {
 				if (attributeData.ConstructorArguments[i].Type.ToDisplayString() == argumentTypes[0]) {
-					accessLevel = ProcessAccessLevel(attributeData.ConstructorArguments[i]);
+					accessLevel = attributeData.ConstructorArguments[i].ProcessAccessLevel();
 				}
 				if (attributeData.ConstructorArguments[i].Type.ToDisplayString() == argumentTypes[1]) {
 					ProcessArgumentMutability(attributeData.ConstructorArguments[i], out hasGetter, out hasSetter);
 				}
 			}
-		}
-
-		private string ProcessAccessLevel(TypedConstant argument) {
-			if (int.TryParse(argument.Value.ToString(), out int enumValue)) {
-				switch (enumValue) {
-					case 0:
-						return "private";
-					case 1:
-						return "protected";
-					case 2:
-						return "internal";
-					case 3:
-						return "public";
-				}
-			}
-
-			return string.Empty;
 		}
 
 		private void ProcessArgumentMutability(TypedConstant argument, out bool hasGetter, out bool hasSetter) {

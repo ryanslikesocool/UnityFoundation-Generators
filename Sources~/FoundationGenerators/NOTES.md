@@ -1,3 +1,6 @@
+# Unity
+You must add the `RoslynAnalyzer` asset tag to the DLL.
+
 # Namespaces and access
 ~~Use namespaces in generators to only generate code in that namespace.  This will break any usage outside of that namespace.~~
 i have no idea how namespaces work with this.

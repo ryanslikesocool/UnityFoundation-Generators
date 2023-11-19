@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Foundation.Generators {
 	[Generator]
-	public class GetComponentGenerator : ISourceGenerator {
+	public sealed class GetComponentGenerator : ISourceGenerator {
 		private const string ATTRIBUTE_NAME = "GetComponentAttribute";
 
 		private const string FILE_TEXT = @"
@@ -52,7 +52,7 @@ internal sealed class GetComponentAttribute : Attribute {
 		}
 
 		private string ProcessClass(INamedTypeSymbol classSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
-			=> Extensions.WrapNamespace(classSymbol, (StringBuilder source) => {
+			=> classSymbol.WrapNamespace((StringBuilder source) => {
 				source.AppendLine($@"
 public partial class {classSymbol.Name} {{
 private void InitializeComponents() {{
