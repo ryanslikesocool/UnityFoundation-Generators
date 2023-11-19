@@ -5,12 +5,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace FoundationGenerators {
+namespace Foundation.Generators {
 	[Generator]
 	public class GetComponentGenerator : ISourceGenerator {
 		private const string ATTRIBUTE_NAME = "GetComponentAttribute";
 
-		private const string ATTRIBUTE_TEXT = @"
+		private const string FILE_TEXT = @"
 using System;
 
 /// <summary>
@@ -29,11 +29,11 @@ internal sealed class GetComponentAttribute : Attribute {
 
 	public GetComponentAttribute(TargetType targetType = TargetType.This) { }
 }
-";
+		";
 
 		public void Initialize(GeneratorInitializationContext context) {
 			context.RegisterForPostInitialization(i
-				=> i.AddSource($"{ATTRIBUTE_NAME}_gen.cs", ATTRIBUTE_TEXT)
+				=> i.AddSource($"{ATTRIBUTE_NAME}_gen.cs", FILE_TEXT)
 			);
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 		}
@@ -46,36 +46,24 @@ internal sealed class GetComponentAttribute : Attribute {
 			INamedTypeSymbol attributeSymbol = context.Compilation.GetTypeByMetadataName(ATTRIBUTE_NAME);
 
 			foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in receiver.Fields.GroupBy<IFieldSymbol, INamedTypeSymbol>(f => f.ContainingType, SymbolEqualityComparer.Default)) {
-				var classSource = ProcessClass(group.Key, group, attributeSymbol);
+				string classSource = ProcessClass(group.Key, group, attributeSymbol);
 				context.AddSource($"{group.Key.Name}_GetComponents_gen.cs", SourceText.From(classSource, Encoding.UTF8));
 			}
 		}
 
-		private string ProcessClass(INamedTypeSymbol classSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol) {
-			var source = new StringBuilder();
-			bool hasNamespace = classSymbol.ContainingNamespace != null;
-
-			if (hasNamespace) {
-				source.AppendLine($"namespace {classSymbol.ContainingNamespace} {{");
-			}
-
-			source.AppendLine($@"
-	public partial class {classSymbol.Name} {{
-		private void InitializeComponents() {{
+		private string ProcessClass(INamedTypeSymbol classSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
+			=> Extensions.WrapNamespace(classSymbol, (StringBuilder source) => {
+				source.AppendLine($@"
+public partial class {classSymbol.Name} {{
+private void InitializeComponents() {{
 ");
 
-			foreach (IFieldSymbol fieldSymbol in fields) {
-				ProcessField(source, fieldSymbol, attributeSymbol);
-			}
+				foreach (IFieldSymbol fieldSymbol in fields) {
+					ProcessField(source, fieldSymbol, attributeSymbol);
+				}
 
-			source.Append("}\n\n}");
-
-			if (hasNamespace) {
-				source.Append("\n}");
-			}
-
-			return source.ToString();
-		}
+				source.Append("}\n}");
+			});
 
 		private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol) {
 			string fieldName = fieldSymbol.Name;
@@ -93,16 +81,22 @@ internal sealed class GetComponentAttribute : Attribute {
 			var stringBuilder = new StringBuilder("GetComponent");
 			if (
 				attributeData.ConstructorArguments.Length > 0
-				&& int.TryParse(attributeData.ConstructorArguments[0].Value.ToString(), out var enumValue)
+				&& int.TryParse(attributeData.ConstructorArguments[0].Value.ToString(), out int enumValue)
 			) {
-				if (enumValue == 1) { stringBuilder.Append("InParent"); }
-				if (enumValue == 2) { stringBuilder.Append("InChildren"); }
+				switch (enumValue) {
+					case 1:
+						stringBuilder.Append("InParent");
+						break;
+					case 2:
+						stringBuilder.Append("InChildren");
+						break;
+				}
 			}
 
 			return stringBuilder.ToString();
 		}
 
-		internal class SyntaxReceiver : ISyntaxContextReceiver {
+		private sealed class SyntaxReceiver : ISyntaxContextReceiver {
 			public List<IFieldSymbol> Fields { get; } = new List<IFieldSymbol>();
 
 			public void OnVisitSyntaxNode(GeneratorSyntaxContext context) {
