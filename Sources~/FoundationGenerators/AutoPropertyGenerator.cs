@@ -55,9 +55,9 @@ internal sealed class AutoPropertyAttribute : Attribute {
 			}
 		}
 
-		private string ProcessClass(INamedTypeSymbol classSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
-			=> classSymbol.WrapNamespace((StringBuilder source) => {
-				source.AppendLine($"public partial class {classSymbol.Name} {{");
+		private string ProcessClass(INamedTypeSymbol typeSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
+			=> typeSymbol.WrapNamespace((StringBuilder source) => {
+				source.AppendLine($"public partial {typeSymbol.TypeKind.AsString().ToLower()} {typeSymbol.Name} {{");
 
 				foreach (IFieldSymbol fieldSymbol in fields) {
 					ProcessField(source, fieldSymbol, attributeSymbol);
