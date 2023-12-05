@@ -58,6 +58,12 @@ public partial class {classSymbol.Name} {{
 private void InitializeComponents() {{
 ");
 
+				//if (classSymbol.Name == "GroundPlane") {
+				//	foreach (IFieldSymbol fieldSymbol in fields) {
+				//		source.AppendLine(fieldSymbol.Type.ToString());
+				//	}
+				//}
+
 				foreach (IFieldSymbol fieldSymbol in fields) {
 					ProcessField(source, fieldSymbol, attributeSymbol);
 				}
@@ -72,13 +78,20 @@ private void InitializeComponents() {{
 			AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad
 				=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
-			string methodType = ProcessAttribute(attributeData);
-
-			source.AppendLine($@"{fieldName} = {methodType}<{fieldType}>();");
+			if (fieldType is IArrayTypeSymbol arrayType) {
+				string methodType = ProcessAttribute(attributeData, true);
+				source.AppendLine($@"{fieldName} = {methodType}<{arrayType.ElementType}>();");
+			} else {
+				string methodType = ProcessAttribute(attributeData, false);
+				source.AppendLine($@"{fieldName} = {methodType}<{fieldType}>();");
+			}
 		}
 
-		private string ProcessAttribute(AttributeData attributeData) {
+		private string ProcessAttribute(AttributeData attributeData, bool isArray) {
 			var stringBuilder = new StringBuilder("GetComponent");
+			if (isArray) {
+				stringBuilder.Append("s");
+			}
 			if (
 				attributeData.ConstructorArguments.Length > 0
 				&& int.TryParse(attributeData.ConstructorArguments[0].Value.ToString(), out int enumValue)
@@ -109,10 +122,17 @@ private void InitializeComponents() {{
 
 						if (
 							(fieldSymbol?.ContainingType.BaseType.IsDerivedFrom("MonoBehaviour") ?? false)
-							&& (fieldSymbol?.Type.BaseType.IsDerivedFrom("Component") ?? false)
 							&& fieldSymbol.GetAttributes().Any(ad => ad.AttributeClass.ToDisplayString() == ATTRIBUTE_NAME)
 						) {
-							Fields.Add(fieldSymbol);
+							if (fieldSymbol?.Type.BaseType.IsDerivedFrom("Component") ?? false) {
+								Fields.Add(fieldSymbol);
+							} else if (
+								fieldSymbol?.Type.TypeKind == TypeKind.Array
+							//fieldSymbol is IArrayTypeSymbol arraySymbol
+							//&& arraySymbol.ElementType.BaseType.IsDerivedFrom("Component")
+							) {
+								Fields.Add(fieldSymbol);
+							}
 						}
 					}
 				}
