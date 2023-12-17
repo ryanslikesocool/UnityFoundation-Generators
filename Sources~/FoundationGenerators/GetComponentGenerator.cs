@@ -27,6 +27,7 @@ internal sealed class GetComponentAttribute : Attribute {
 		Child = 2
 	}
 
+	/// <param name=""targetType"">The object the component is attached to, relative to <c>this.gameObject</c>.</param>
 	public GetComponentAttribute(TargetType targetType = TargetType.This) { }
 }
 		";
@@ -47,28 +48,32 @@ internal sealed class GetComponentAttribute : Attribute {
 
 			foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in receiver.Fields.GroupBy<IFieldSymbol, INamedTypeSymbol>(f => f.ContainingType, SymbolEqualityComparer.Default)) {
 				string classSource = ProcessClass(group.Key, group, attributeSymbol);
-				context.AddSource($"{group.Key.Name}_GetComponents_gen.cs", SourceText.From(classSource, Encoding.UTF8));
+				context.AddSource($"{group.Key.Name}_{ATTRIBUTE_NAME}_gen.cs", SourceText.From(classSource, Encoding.UTF8));
 			}
 		}
 
-		private string ProcessClass(INamedTypeSymbol classSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
-			=> classSymbol.WrapNamespace((StringBuilder source) => {
-				source.AppendLine($@"
-public partial class {classSymbol.Name} {{
+		private string ProcessClass(INamedTypeSymbol typeSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
+			=> SourceBuilder.Run(instance => {
+				instance.ExtendType(typeSymbol, _ => {
+					instance.source.AppendLine($@"
+/// <summary>
+/// Retrieve necessary components.
+/// </summary>
 private void InitializeComponents() {{
 ");
 
-				//if (classSymbol.Name == "GroundPlane") {
-				//	foreach (IFieldSymbol fieldSymbol in fields) {
-				//		source.AppendLine(fieldSymbol.Type.ToString());
-				//	}
-				//}
+					//if (classSymbol.Name == "GroundPlane") {
+					//	foreach (IFieldSymbol fieldSymbol in fields) {
+					//		source.AppendLine(fieldSymbol.Type.ToString());
+					//	}
+					//}
 
-				foreach (IFieldSymbol fieldSymbol in fields) {
-					ProcessField(source, fieldSymbol, attributeSymbol);
-				}
+					foreach (IFieldSymbol fieldSymbol in fields) {
+						ProcessField(instance.source, fieldSymbol, attributeSymbol);
+					}
 
-				source.Append("}\n}");
+					instance.source.Append("}");
+				});
 			});
 
 		private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol) {
@@ -127,10 +132,11 @@ private void InitializeComponents() {{
 							if (fieldSymbol?.Type.BaseType.IsDerivedFrom("Component") ?? false) {
 								Fields.Add(fieldSymbol);
 							} else if (
-								fieldSymbol?.Type.TypeKind == TypeKind.Array
-							//fieldSymbol is IArrayTypeSymbol arraySymbol
-							//&& arraySymbol.ElementType.BaseType.IsDerivedFrom("Component")
-							) {
+								  fieldSymbol?.Type.TypeKind == TypeKind.Array
+							  //fieldSymbol is IArrayTypeSymbol arraySymbol
+							  //&& arraySymbol.ElementType.BaseType.IsDerivedFrom("Component")
+							  ) {
+								// TODO: validate array element type
 								Fields.Add(fieldSymbol);
 							}
 						}

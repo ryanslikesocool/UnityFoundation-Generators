@@ -27,26 +27,6 @@ namespace Foundation.Generators {
 			}
 		}
 
-		public static string WrapNamespace(
-			this INamedTypeSymbol classSymbol,
-			Action<StringBuilder> content
-		) {
-			var source = new StringBuilder();
-			bool hasNamespace = classSymbol.ContainingNamespace != null;
-
-			if (hasNamespace) {
-				source.AppendLine($"namespace {classSymbol.ContainingNamespace} {{");
-			}
-
-			content(source);
-
-			if (hasNamespace) {
-				source.Append("\n}");
-			}
-
-			return source.ToString();
-		}
-
 		public static string ProcessAccessLevel(this TypedConstant argument) {
 			if (int.TryParse(argument.Value.ToString(), out var enumValue)) {
 				switch (enumValue) {

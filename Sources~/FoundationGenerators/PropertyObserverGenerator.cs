@@ -23,9 +23,17 @@ internal sealed class PropertyObserverAttribute : Attribute {
 		Public = 3
 	}
 
+	/// <summary>
+	/// The name of the function to be called immediately before the property value will be set.
+	/// </summary>
 	public string WillSet { get; set;}
+
+	/// <summary>
+	/// The name of the function to be called immediately after the property value is set.
+	/// </summary>
 	public string DidSet { get; set;}
 
+	/// <param name=""accessLevel"">The access level of the generated property.</param>
 	public PropertyObserverAttribute(AccessLevel accessLevel = AccessLevel.Public) { }
 }
 ";
@@ -46,32 +54,18 @@ internal sealed class PropertyObserverAttribute : Attribute {
 
 			foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in receiver.Fields.GroupBy<IFieldSymbol, INamedTypeSymbol>(f => f.ContainingType, SymbolEqualityComparer.Default)) {
 				var classSource = ProcessClass(group.Key, group, attributeSymbol);
-				context.AddSource($"{group.Key.Name}_PropertyObservers_gen.cs", SourceText.From(classSource, Encoding.UTF8));
+				context.AddSource($"{group.Key.Name}_{ATTRIBUTE_NAME}_gen.cs", SourceText.From(classSource, Encoding.UTF8));
 			}
 		}
 
-		private string ProcessClass(INamedTypeSymbol classSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol) {
-			var source = new StringBuilder();
-			bool hasNamespace = classSymbol.ContainingNamespace != null;
-
-			if (hasNamespace) {
-				source.AppendLine($"namespace {classSymbol.ContainingNamespace} {{");
-			}
-
-			source.AppendLine($"public partial class {classSymbol.Name} {{");
-
-			foreach (IFieldSymbol fieldSymbol in fields) {
-				ProcessField(source, fieldSymbol, attributeSymbol);
-			}
-
-			source.Append("\n}");
-
-			if (hasNamespace) {
-				source.Append("\n}");
-			}
-
-			return source.ToString();
-		}
+		private string ProcessClass(INamedTypeSymbol typeSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
+			=> SourceBuilder.Run(instance => {
+				instance.ExtendType(typeSymbol, _ => {
+					foreach (IFieldSymbol fieldSymbol in fields) {
+						ProcessField(instance.source, fieldSymbol, attributeSymbol);
+					}
+				});
+			});
 
 		private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol) {
 			string fieldName = fieldSymbol.Name;
@@ -83,11 +77,12 @@ internal sealed class PropertyObserverAttribute : Attribute {
 			ProcessAttribute(attributeData, out string accessLevel, out string willSetFunction, out string didSetFunction);
 			string publicFieldName = Extensions.PromoteFieldName(fieldName);
 
-			source.AppendLine($@"{accessLevel} {fieldType} {publicFieldName} {{
+			source.AppendLine($@"
+			{accessLevel} {fieldType} {publicFieldName} {{
 				get => {fieldName};
 				set {{
 					{fieldType} oldValue = {fieldName};
-");
+			");
 
 			if (willSetFunction != null) {
 				source.AppendLine($"{willSetFunction}(oldValue, ref value);");

@@ -31,6 +31,8 @@ internal sealed class AutoPropertyAttribute : Attribute {
 		Set = 1 << 1
 	}
 
+	/// <param name=""accessLevel"">The access level of the generated property.</param>
+	/// <param name=""mutability"">The mutability of the generated property.</param>
 	public AutoPropertyAttribute(AccessLevel accessLevel = AccessLevel.Public, Mutability mutability = Mutability.Get) { }
 }
 		";
@@ -51,19 +53,17 @@ internal sealed class AutoPropertyAttribute : Attribute {
 
 			foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in receiver.Fields.GroupBy<IFieldSymbol, INamedTypeSymbol>(f => f.ContainingType, SymbolEqualityComparer.Default)) {
 				string classSource = ProcessClass(group.Key, group, attributeSymbol);
-				context.AddSource($"{group.Key.Name}_AutoProperty_gen.cs", SourceText.From(classSource, Encoding.UTF8));
+				context.AddSource($"{group.Key.Name}_{ATTRIBUTE_NAME}_gen.cs", SourceText.From(classSource, Encoding.UTF8));
 			}
 		}
 
 		private string ProcessClass(INamedTypeSymbol typeSymbol, IEnumerable<IFieldSymbol> fields, ISymbol attributeSymbol)
-			=> typeSymbol.WrapNamespace((StringBuilder source) => {
-				source.AppendLine($"public partial {typeSymbol.TypeKind.AsString().ToLower()} {typeSymbol.Name} {{");
-
-				foreach (IFieldSymbol fieldSymbol in fields) {
-					ProcessField(source, fieldSymbol, attributeSymbol);
-				}
-
-				source.AppendLine("}");
+			=> SourceBuilder.Run(instance => {
+				instance.ExtendType(typeSymbol, _ => {
+					foreach (IFieldSymbol fieldSymbol in fields) {
+						ProcessField(instance.source, fieldSymbol, attributeSymbol);
+					}
+				});
 			});
 
 		private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol) {
