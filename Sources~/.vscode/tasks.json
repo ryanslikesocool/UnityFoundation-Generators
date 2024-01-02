@@ -10,16 +10,20 @@
 			"group": "build",
 			"label": "dotnet: build"
 		},
-        {
-            "label": "dotnet: build release",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build",
-                "-c",
-                "Release"
-            ],
-            "problemMatcher": "$msCompile"
-        }
+		{
+			"type": "process",
+			"command": "dotnet",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"args": [
+				"build",
+				"-c",
+				"Release",
+				"-o",
+				"../Runtime"
+			],
+			"label": "dotnet: build release"
+		}
 	]
 }
