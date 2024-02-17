@@ -74,11 +74,11 @@ internal sealed class PropertyObserverAttribute : Attribute {
 			AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad
 				=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
-			ProcessAttribute(attributeData, out string accessLevel, out string willSetFunction, out string didSetFunction);
+			ProcessAttribute(attributeData, out AccessLevel accessLevel, out string willSetFunction, out string didSetFunction);
 			string publicFieldName = Extensions.PromoteFieldName(fieldName);
 
 			source.AppendLine($@"
-			{accessLevel} {fieldType} {publicFieldName} {{
+			{accessLevel.Description()} {fieldType} {publicFieldName} {{
 				get => {fieldName};
 				set {{
 					{fieldType} oldValue = {fieldName};
@@ -101,8 +101,8 @@ internal sealed class PropertyObserverAttribute : Attribute {
 			//}
 		}
 
-		private void ProcessAttribute(AttributeData attributeData, out string accessLevel, out string willSetFunction, out string didSetFunction) {
-			accessLevel = "public";
+		private void ProcessAttribute(AttributeData attributeData, out AccessLevel accessLevel, out string willSetFunction, out string didSetFunction) {
+			accessLevel = AccessLevel.Public;
 			willSetFunction = null;
 			didSetFunction = null;
 
@@ -116,17 +116,21 @@ internal sealed class PropertyObserverAttribute : Attribute {
 			};
 
 			for (int i = 0; i < argumentTypes.Length; i++) {
-				if (attributeData.ConstructorArguments[i].Type.ToDisplayString() == argumentTypes[0]) {
-					accessLevel = attributeData.ConstructorArguments[i].ProcessAccessLevel();
+				TypedConstant argument = attributeData.ConstructorArguments[i];
+
+				if (argument.Type.ToDisplayString() == argumentTypes[0]) {
+					accessLevel = argument.ProcessAccessLevel() ?? AccessLevel.Public;
 				}
 			}
 
 			for (int i = 0; i < attributeData.NamedArguments.Length; i++) {
-				if (attributeData.NamedArguments[i].Key == argumentNames[0]) {
-					willSetFunction = ProcessFunctionName(attributeData.NamedArguments[i].Value);
+				KeyValuePair<string, TypedConstant> argument = attributeData.NamedArguments[i];
+
+				if (argument.Key == argumentNames[0]) {
+					willSetFunction = ProcessFunctionName(argument.Value);
 				}
-				if (attributeData.NamedArguments[i].Key == argumentNames[1]) {
-					didSetFunction = ProcessFunctionName(attributeData.NamedArguments[i].Value);
+				if (argument.Key == argumentNames[1]) {
+					didSetFunction = ProcessFunctionName(argument.Value);
 				}
 			}
 		}

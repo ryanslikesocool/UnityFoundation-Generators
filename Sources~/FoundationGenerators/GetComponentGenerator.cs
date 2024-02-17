@@ -62,12 +62,6 @@ internal sealed class GetComponentAttribute : Attribute {
 private void InitializeComponents() {{
 ");
 
-					//if (classSymbol.Name == "GroundPlane") {
-					//	foreach (IFieldSymbol fieldSymbol in fields) {
-					//		source.AppendLine(fieldSymbol.Type.ToString());
-					//	}
-					//}
-
 					foreach (IFieldSymbol fieldSymbol in fields) {
 						ProcessField(instance.source, fieldSymbol, attributeSymbol);
 					}
@@ -80,8 +74,7 @@ private void InitializeComponents() {{
 			string fieldName = fieldSymbol.Name;
 			ITypeSymbol fieldType = fieldSymbol.Type;
 
-			AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad
-				=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
+			AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
 			if (fieldType is IArrayTypeSymbol arrayType) {
 				string methodType = ProcessAttribute(attributeData, true);

@@ -26,14 +26,23 @@ internal sealed class AutoPropertyAttribute : Attribute {
 	}
 
 	[Flags]
+	public enum AccessModifier {
+		None = 0,
+		Static = 1 << 0,
+		ReadOnly = 1 << 1,
+		New = 1 << 2
+	}
+
+	[Flags]
 	public enum Mutability {
 		Get = 1 << 0,
-		Set = 1 << 1
+		Set = 1 << 1,
+		GetSet = Get | Set
 	}
 
 	/// <param name=""accessLevel"">The access level of the generated property.</param>
 	/// <param name=""mutability"">The mutability of the generated property.</param>
-	public AutoPropertyAttribute(AccessLevel accessLevel = AccessLevel.Public, Mutability mutability = Mutability.Get) { }
+	public AutoPropertyAttribute(AccessLevel accessLevel = AccessLevel.Public, AccessModifier accessModifier = AccessModifier.None, Mutability mutability = Mutability.Get) { }
 }
 		";
 
@@ -74,53 +83,36 @@ internal sealed class AutoPropertyAttribute : Attribute {
 				=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default)
 			);
 
-			ProcessAttribute(attributeData, out string accessLevel, out bool hasGetter, out bool hasSetter);
+			ProcessAttribute(attributeData, out AccessLevel accessLevel, out AccessModifier accessModifier, out Mutability mutability);
 			string publicFieldName = Extensions.PromoteFieldName(fieldName);
 
-			if (hasGetter && hasSetter) {
-				source.AppendLine($@"{accessLevel} {fieldType} {publicFieldName} {{
-					get => {fieldName};
-					set => {fieldName} = value;
-				}}");
-			} else if (hasGetter) {
-				source.AppendLine($"{accessLevel} {fieldType} {publicFieldName} => {fieldName};");
-			} else if (hasSetter) {
-				source.AppendLine($@"{accessLevel} {fieldType} {publicFieldName} {{
-					set => {fieldName} = value;
-				}}");
-			}
+			source.AppendFormat(mutability.GetPropertyFormat(), accessLevel.Description(), accessModifier.Description(), fieldType, publicFieldName, fieldName);
 		}
 
-		private void ProcessAttribute(AttributeData attributeData, out string accessLevel, out bool hasGetter, out bool hasSetter) {
-			accessLevel = "public";
-			hasGetter = true;
-			hasSetter = false;
 
-			string[] argumentTypes = new string[2] {
+		private void ProcessAttribute(AttributeData attributeData, out AccessLevel accessLevel, out AccessModifier accessModifier, out Mutability mutability) {
+			accessLevel = AccessLevel.Public;
+			accessModifier = AccessModifier.None;
+			mutability = Mutability.Get;
+
+			string[] argumentTypes = new string[3] {
 				"AutoPropertyAttribute.AccessLevel",
+				"AutoPropertyAttribute.AccessModifier",
 				"AutoPropertyAttribute.Mutability"
 			};
 
 			for (int i = 0; i < attributeData.ConstructorArguments.Length; i++) {
-				if (attributeData.ConstructorArguments[i].Type.ToDisplayString() == argumentTypes[0]) {
-					accessLevel = attributeData.ConstructorArguments[i].ProcessAccessLevel();
-				}
-				if (attributeData.ConstructorArguments[i].Type.ToDisplayString() == argumentTypes[1]) {
-					ProcessArgumentMutability(attributeData.ConstructorArguments[i], out hasGetter, out hasSetter);
-				}
-			}
-		}
+				TypedConstant argument = attributeData.ConstructorArguments[i];
+				string typeDisplayName = argument.Type.ToDisplayString();
 
-		private void ProcessArgumentMutability(TypedConstant argument, out bool hasGetter, out bool hasSetter) {
-			hasGetter = false;
-			hasSetter = false;
-
-			if (int.TryParse(argument.Value.ToString(), out int flagsValue)) {
-				if ((flagsValue & (1 << 0)) != 0) {
-					hasGetter = true;
+				if (typeDisplayName == argumentTypes[0]) {
+					accessLevel = argument.ProcessAccessLevel() ?? accessLevel;
 				}
-				if ((flagsValue & (1 << 1)) != 0) {
-					hasSetter = true;
+				if (typeDisplayName == argumentTypes[1]) {
+					accessModifier = argument.ProcessAccessModifier() ?? accessModifier;
+				}
+				if (typeDisplayName == argumentTypes[2]) {
+					mutability = argument.ProcessArgumentMutability() ?? mutability;
 				}
 			}
 		}
