@@ -120,7 +120,7 @@ private void InitializeComponents() {{
 
 						if (
 							// TODO: figure out a way to check if base type is an interface
-							//(fieldSymbol?.ContainingType.BaseType.IsDerivedFrom("MonoBehaviour") ?? false)
+							//(fieldSymbol?.ContainingType.BaseType.IsDerivedFrom("Component") ?? false)
 							//&&
 							fieldSymbol.GetAttributes().Any(ad => ad.AttributeClass.ToDisplayString() == ATTRIBUTE_NAME)
 						) {
