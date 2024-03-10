@@ -119,8 +119,10 @@ private void InitializeComponents() {{
 						IFieldSymbol fieldSymbol = context.SemanticModel.GetDeclaredSymbol(variable) as IFieldSymbol;
 
 						if (
-							(fieldSymbol?.ContainingType.BaseType.IsDerivedFrom("MonoBehaviour") ?? false)
-							&& fieldSymbol.GetAttributes().Any(ad => ad.AttributeClass.ToDisplayString() == ATTRIBUTE_NAME)
+							// TODO: figure out a way to check if base type is an interface
+							//(fieldSymbol?.ContainingType.BaseType.IsDerivedFrom("MonoBehaviour") ?? false)
+							//&&
+							fieldSymbol.GetAttributes().Any(ad => ad.AttributeClass.ToDisplayString() == ATTRIBUTE_NAME)
 						) {
 							if (fieldSymbol?.Type.BaseType.IsDerivedFrom("Component") ?? false) {
 								Fields.Add(fieldSymbol);
