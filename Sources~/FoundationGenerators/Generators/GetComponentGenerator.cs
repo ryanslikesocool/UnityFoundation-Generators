@@ -124,16 +124,17 @@ private void InitializeComponents() {{
 							//&&
 							fieldSymbol.GetAttributes().Any(ad => ad.AttributeClass.ToDisplayString() == ATTRIBUTE_NAME)
 						) {
-							if (fieldSymbol?.Type.BaseType.IsDerivedFrom("Component") ?? false) {
-								Fields.Add(fieldSymbol);
-							} else if (
-								  fieldSymbol?.Type.TypeKind == TypeKind.Array
-							  //fieldSymbol is IArrayTypeSymbol arraySymbol
-							  //&& arraySymbol.ElementType.BaseType.IsDerivedFrom("Component")
-							  ) {
-								// TODO: validate array element type
-								Fields.Add(fieldSymbol);
-							}
+							//if (fieldSymbol?.Type.BaseType.IsDerivedFrom("Component") ?? false) {
+							//	Fields.Add(fieldSymbol);
+							//} else if (
+							//	 fieldSymbol?.Type.TypeKind == TypeKind.Array
+							// //fieldSymbol is IArrayTypeSymbol arraySymbol
+							// //&& arraySymbol.ElementType.BaseType.IsDerivedFrom("Component")
+							// ) {
+							//	// TODO: validate array element type
+							//	Fields.Add(fieldSymbol);
+							//}
+							Fields.Add(fieldSymbol);
 						}
 					}
 				}
