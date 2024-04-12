@@ -8,7 +8,7 @@ i have no idea how namespaces work with this.
 Make generated objects internal to avoid naming conflicts, since the code will be generated for every assembly.
 
 # Code Gen
-You CANNOT use files created manually inside generated code, which sucks major butt.
+You CANNOT use files created manually inside generated code, which really sucks.
 
 Generate whole files with
 ```cs

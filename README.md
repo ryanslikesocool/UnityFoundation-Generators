@@ -16,3 +16,6 @@ https://github.com/ryanslikesocool/UnityFoundation-Generators.git
 ```cs
 // TODO
 ```
+
+## Known Issues
+- Nested objects are not supported.
