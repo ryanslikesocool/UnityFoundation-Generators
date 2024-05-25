@@ -26,6 +26,7 @@ namespace Foundation.Generators {
 		/// 4: Underlying name
 		/// </summary>
 		public static string GetPropertyFormat(this Mutability mutability) {
+			// Can't use inline switch because sln C# version isn't up-to-date...
 			switch (mutability) {
 				case Mutability.Get:
 					return GET_FORMAT;

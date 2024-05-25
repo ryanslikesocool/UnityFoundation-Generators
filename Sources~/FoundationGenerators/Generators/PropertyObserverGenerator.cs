@@ -103,16 +103,9 @@ internal sealed class PropertyObserverAttribute : Attribute {
 
 		private void ProcessAttribute(AttributeData attributeData, out AccessLevel accessLevel, out string willSetFunction, out string didSetFunction) {
 			accessLevel = AccessLevel.Public;
-			willSetFunction = null;
-			didSetFunction = null;
 
 			string[] argumentTypes = new string[1] {
 				"PropertyObserverAttribute.AccessLevel"
-			};
-
-			string[] argumentNames = new string[2] {
-				"WillSet",
-				"DidSet"
 			};
 
 			for (int i = 0; i < argumentTypes.Length; i++) {
@@ -123,24 +116,8 @@ internal sealed class PropertyObserverAttribute : Attribute {
 				}
 			}
 
-			for (int i = 0; i < attributeData.NamedArguments.Length; i++) {
-				KeyValuePair<string, TypedConstant> argument = attributeData.NamedArguments[i];
-
-				if (argument.Key == argumentNames[0]) {
-					willSetFunction = ProcessFunctionName(argument.Value);
-				}
-				if (argument.Key == argumentNames[1]) {
-					didSetFunction = ProcessFunctionName(argument.Value);
-				}
-			}
-		}
-
-		private string ProcessFunctionName(TypedConstant argument) {
-			if (!argument.IsNull) {
-				return argument.Value.ToString();
-			} else {
-				return null;
-			}
+			willSetFunction = attributeData.GetArgumentClass<string>("WillSet");
+			didSetFunction = attributeData.GetArgumentClass<string>("DidSet");
 		}
 
 		private sealed class SyntaxReceiver : ISyntaxContextReceiver {
