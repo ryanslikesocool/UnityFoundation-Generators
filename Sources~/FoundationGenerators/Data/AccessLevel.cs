@@ -15,7 +15,7 @@ namespace Foundation.Generators {
 		private const string ACCESS_LEVEL_PUBLIC = "public";
 
 		public static string Description(this AccessLevel accessLevel) {
-			// Can't use inline switch because sln C# version isn't up-to-date...
+			// Can't use inline switch because C# 7.3 doesn't support it...
 			switch (accessLevel) {
 				case AccessLevel.Private:
 					return ACCESS_LEVEL_PRIVATE;

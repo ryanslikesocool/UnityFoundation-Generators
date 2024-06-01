@@ -33,9 +33,7 @@ internal sealed class GetComponentAttribute : Attribute {
 		";
 
 		public void Initialize(GeneratorInitializationContext context) {
-			context.RegisterForPostInitialization(i
-				=> i.AddSource($"{ATTRIBUTE_NAME}_gen.cs", FILE_TEXT)
-			);
+			context.RegisterForPostInitialization(i => i.AddSource($"{ATTRIBUTE_NAME}_gen.cs", FILE_TEXT));
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 		}
 
@@ -86,7 +84,7 @@ private void InitializeComponents() {{
 		}
 
 		private string ProcessAttribute(AttributeData attributeData, bool isArray) {
-			var stringBuilder = new StringBuilder("GetComponent");
+			StringBuilder stringBuilder = new StringBuilder("GetComponent");
 			if (isArray) {
 				stringBuilder.Append("s");
 			}
