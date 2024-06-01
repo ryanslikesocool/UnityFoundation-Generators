@@ -8,11 +8,10 @@ using Generators;
 
 namespace Foundation.Generators {
 	[Generator]
-	public sealed class SingletonGenerator : ISourceGenerator {
+	internal sealed class SingletonGenerator : ISourceGenerator {
 		private const string ATTRIBUTE_NAME = "SingletonAttribute";
 
 		private const string FILE_TEXT = @"
-using UnityEngine;
 using System;
 
 /// <summary>
@@ -23,13 +22,24 @@ using System;
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
 internal sealed class SingletonAttribute : Attribute {
+	/// <remarks>
+	/// Maps to UnityEngine.RuntimeInitializeLoadType
+	/// </remarks>
+	public enum RuntimeInitializeLoadType {
+		AfterSceneLoad,
+		BeforeSceneLoad,
+		AfterAssembliesLoaded,
+		BeforeSplashScreen,
+		SubsystemRegistration
+	}
+
 	/// <summary>
 	/// The stage in which to initialize the singleton.
 	/// </summary>
 	/// <remarks>
 	/// Set this value to <see langword=""null""/> to load lazily.
 	/// </remarks>
-	public RuntimeInitializeLoadType? LoadType { get; set; }
+	public RuntimeInitializeLoadType? loadType { get; set; }
 
 	public SingletonAttribute() { }
 }
@@ -59,8 +69,11 @@ internal sealed class SingletonAttribute : Attribute {
 					=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
 				RuntimeInitializeLoadType? loadType = null;
-				if (attributeData.TryGetNamedArgumentStructValue<int>("LoadType", out int loadTypeRawValue)) {
-					loadType = (RuntimeInitializeLoadType)loadTypeRawValue;
+				if (
+					attributeData.TryGetNamedArgument("loadType", out KeyValuePair<string, TypedConstant> loadTypeArgument)
+					&& loadTypeArgument.TryGetIntValue(out int loadTypeIntValue)
+				) {
+					loadType = (RuntimeInitializeLoadType)loadTypeIntValue;
 				}
 
 				if (loadType.HasValue) {

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Foundation.Generators {
 	[Generator]
-	public sealed class SingletonComponentGenerator : ISourceGenerator {
+	internal sealed class SingletonComponentGenerator : ISourceGenerator {
 		private const string ATTRIBUTE_NAME = "SingletonComponentAttribute";
 
 		private const string FILE_TEXT = @"
@@ -24,12 +24,12 @@ internal sealed class SingletonComponentAttribute : Attribute {
 	/// <remarks>
 	/// This uses <c>DontDestroyOnLoad(this.gameObject);</c> internally.
 	/// </remarks>
-	public bool Persistent { get; set; }
+	public bool persistent { get; set; }
 
 	/// <summary>
 	/// Should a GameObject with this component automatically be created if a shared instance cannot be found?
 	/// </summary>
-	public bool Auto { get; set; }
+	public bool auto { get; set; }
 
 	public SingletonComponentAttribute() { }
 }
@@ -60,8 +60,8 @@ internal sealed class SingletonComponentAttribute : Attribute {
 					AttributeData attributeData = typeSymbol.GetAttributes().Single(ad
 						=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
-					bool persistent = attributeData.GetNamedArgumentStructValue<bool>(argumentName: "Persistent") ?? false;
-					bool auto = attributeData.GetNamedArgumentStructValue<bool>(argumentName: "Auto") ?? false;
+					bool persistent = attributeData.GetNamedArgumentStruct("persistent", false);
+					bool auto = attributeData.GetNamedArgumentStruct("auto", false);
 
 					{ // getter
 						instance.source.AppendLine($@"

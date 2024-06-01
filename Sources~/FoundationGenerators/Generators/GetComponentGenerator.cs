@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Foundation.Generators {
 	[Generator]
-	public sealed class GetComponentGenerator : ISourceGenerator {
+	internal sealed class GetComponentGenerator : ISourceGenerator {
 		private const string ATTRIBUTE_NAME = "GetComponentAttribute";
 
 		private const string FILE_TEXT = @"
@@ -76,10 +76,10 @@ private void InitializeComponents() {{
 
 			if (fieldType is IArrayTypeSymbol arrayType) {
 				string methodType = ProcessAttribute(attributeData, true);
-				source.AppendLine($@"{fieldName} = {methodType}<{arrayType.ElementType}>();");
+				source.AppendLine($"{fieldName} = {methodType}<{arrayType.ElementType}>();");
 			} else {
 				string methodType = ProcessAttribute(attributeData, false);
-				source.AppendLine($@"{fieldName} = {methodType}<{fieldType}>();");
+				source.AppendLine($"{fieldName} = {methodType}<{fieldType}>();");
 			}
 		}
 
