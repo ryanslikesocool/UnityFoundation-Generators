@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Foundation.Generators {
 	[Flags]
-	internal enum AccessModifier {
+	internal enum PropertyModifier {
 		None = 0,
 		Static = 1 << 0,
 		ReadOnly = 1 << 1,
@@ -16,24 +16,24 @@ namespace Foundation.Generators {
 		private const string ACCESS_MODIFIER_READONLY = "readonly";
 		private const string ACCESS_MODIFIER_NEW = "new";
 
-		public static AccessModifier? ProcessAccessModifier(this TypedConstant argument) {
+		public static PropertyModifier? ProcessAccessModifier(this TypedConstant argument) {
 			if (int.TryParse(argument.Value.ToString(), out int enumValue)) {
-				return (AccessModifier)enumValue;
+				return (PropertyModifier)enumValue;
 			} else {
 				return null;
 			}
 		}
 
-		public static string Description(this AccessModifier accessModifier) {
+		public static string Description(this PropertyModifier accessModifier) {
 			List<string> modifiers = new List<string>(3);
 
-			if (accessModifier.HasFlag(AccessModifier.Static)) {
+			if (accessModifier.HasFlag(PropertyModifier.Static)) {
 				modifiers.Add(ACCESS_MODIFIER_STATIC);
 			}
-			if (accessModifier.HasFlag(AccessModifier.ReadOnly)) {
+			if (accessModifier.HasFlag(PropertyModifier.ReadOnly)) {
 				modifiers.Add(ACCESS_MODIFIER_READONLY);
 			}
-			if (accessModifier.HasFlag(AccessModifier.New)) {
+			if (accessModifier.HasFlag(PropertyModifier.New)) {
 				modifiers.Add(ACCESS_MODIFIER_NEW);
 			}
 

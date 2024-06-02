@@ -8,37 +8,45 @@ using Generators;
 
 namespace Foundation.Generators {
 	[Generator]
-	public sealed class SingletonGenerator : ISourceGenerator {
+	internal sealed class SingletonGenerator : ISourceGenerator {
 		private const string ATTRIBUTE_NAME = "SingletonAttribute";
 
 		private const string FILE_TEXT = @"
-using UnityEngine;
 using System;
 
 /// <summary>
-/// Mark a type as a singleton, accessible from anywhere in C#.
+/// Mark a type as a singleton, generating a shared instance accessible from anywhere in C#.
 /// </summary>
 /// <remarks>
 /// To mark a Unity component as a singleton, use the <see cref=""SingletonComponent""/> attribute instead.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
 internal sealed class SingletonAttribute : Attribute {
+	/// <remarks>
+	/// Maps to UnityEngine.RuntimeInitializeLoadType
+	/// </remarks>
+	public enum RuntimeInitializeLoadType {
+		AfterSceneLoad,
+		BeforeSceneLoad,
+		AfterAssembliesLoaded,
+		BeforeSplashScreen,
+		SubsystemRegistration
+	}
+
 	/// <summary>
 	/// The stage in which to initialize the singleton.
 	/// </summary>
 	/// <remarks>
 	/// Set this value to <see langword=""null""/> to load lazily.
 	/// </remarks>
-	public RuntimeInitializeLoadType? LoadType { get; set; }
+	public RuntimeInitializeLoadType? loadType { get; set; }
 
 	public SingletonAttribute() { }
 }
 		";
 
 		public void Initialize(GeneratorInitializationContext context) {
-			context.RegisterForPostInitialization(i
-				=> i.AddSource($"{ATTRIBUTE_NAME}_gen.cs", FILE_TEXT)
-			);
+			context.RegisterForPostInitialization(i => i.AddSource($"{ATTRIBUTE_NAME}_gen.cs", FILE_TEXT));
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 		}
 
@@ -59,7 +67,14 @@ internal sealed class SingletonAttribute : Attribute {
 			=> SourceBuilder.Run(instance => {
 				AttributeData attributeData = typeSymbol.GetAttributes().Single(ad
 					=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
-				ProcessAttribute(attributeData, out RuntimeInitializeLoadType? loadType);
+
+				RuntimeInitializeLoadType? loadType = null;
+				if (
+					attributeData.TryGetNamedArgument("loadType", out KeyValuePair<string, TypedConstant> loadTypeArgument)
+					&& loadTypeArgument.TryGetIntValue(out int loadTypeIntValue)
+				) {
+					loadType = (RuntimeInitializeLoadType)loadTypeIntValue;
+				}
 
 				if (loadType.HasValue) {
 					instance.UsingNamespaces("UnityEngine");
@@ -89,10 +104,6 @@ internal sealed class SingletonAttribute : Attribute {
 					}
 				});
 			});
-
-		private void ProcessAttribute(AttributeData attributeData, out RuntimeInitializeLoadType? loadType) {
-			loadType = null;
-		}
 
 		private sealed class SyntaxReceiver : ISyntaxContextReceiver {
 			public List<INamedTypeSymbol> Types { get; } = new List<INamedTypeSymbol>();

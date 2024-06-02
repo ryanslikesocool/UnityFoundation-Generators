@@ -36,7 +36,7 @@ namespace Foundation.Generators {
 			contentBuilder(instance.source);
 
 			if (hasNamespace) {
-				instance.source.Append("\n}");
+				instance.source.AppendLine("}");
 			}
 
 			return instance;
@@ -48,11 +48,8 @@ namespace Foundation.Generators {
 			Action<StringBuilder> contentBuilder
 		) {
 			instance.MatchNamespace(typeSymbol, _ => {
-				// TODO: implement access level
-				instance.source.AppendLine($"partial {typeSymbol.TypeKind.AsString().ToLower()} {typeSymbol.Name} {{");
-
+				instance.source.AppendLine($"{typeSymbol.DeclaredAccessibility.Description()} partial {typeSymbol.TypeKind.Description().ToLower()} {typeSymbol.Name} {{");
 				contentBuilder(instance.source);
-
 				instance.source.AppendLine("}");
 			});
 

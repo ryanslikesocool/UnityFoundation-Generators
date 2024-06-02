@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 
 namespace Foundation.Generators {
-	internal enum AccessLevel {
+	internal enum PropertyAccessibility {
 		Private = 0,
 		Protected = 1,
 		Internal = 2,
@@ -14,25 +14,25 @@ namespace Foundation.Generators {
 		private const string ACCESS_LEVEL_INTERNAL = "internal";
 		private const string ACCESS_LEVEL_PUBLIC = "public";
 
-		public static string Description(this AccessLevel accessLevel) {
-			// Can't use inline switch because sln C# version isn't up-to-date...
+		public static string Description(this PropertyAccessibility accessLevel) {
+			// Can't use inline switch because C# 7.3 doesn't support it...
 			switch (accessLevel) {
-				case AccessLevel.Private:
+				case PropertyAccessibility.Private:
 					return ACCESS_LEVEL_PRIVATE;
-				case AccessLevel.Protected:
+				case PropertyAccessibility.Protected:
 					return ACCESS_LEVEL_PROTECTED;
-				case AccessLevel.Internal:
+				case PropertyAccessibility.Internal:
 					return ACCESS_LEVEL_INTERNAL;
-				case AccessLevel.Public:
+				case PropertyAccessibility.Public:
 					return ACCESS_LEVEL_PUBLIC;
 				default:
 					return string.Empty;
 			}
 		}
 
-		public static AccessLevel? ProcessAccessLevel(this TypedConstant argument) {
+		public static PropertyAccessibility? ProcessAccessLevel(this TypedConstant argument) {
 			if (int.TryParse(argument.Value.ToString(), out int enumValue)) {
-				return (AccessLevel)enumValue;
+				return (PropertyAccessibility)enumValue;
 			} else {
 				return null;
 			}
