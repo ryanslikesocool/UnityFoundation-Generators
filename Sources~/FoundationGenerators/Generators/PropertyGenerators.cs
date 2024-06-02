@@ -14,7 +14,7 @@ namespace Foundation.Generators {
 		private const string GET_ATTRIBUTE_NAME = "GetAttribute";
 		private const string SET_ATTRIBUTE_NAME = "SetAttribute";
 		private const string PROPERTY_NAME_ATTRIBUTE_NAME = "PropertyNameAttribute";
-		private const string PROPERTY_ACCESSIBILITY_ATTRIBUTE_NAME = "PropertyAcessibilityAttribute";
+		private const string PROPERTY_ACCESSIBILITY_ATTRIBUTE_NAME = "PropertyAccessibilityAttribute";
 		private const string PROPERTY_MODIFIER_ATTRIBUTE_NAME = "PropertyModifierAttribute";
 		private const string ON_CHANGE_ATTRIBUTE_NAME = "OnChangeAttribute";
 		private const string WILL_SET_ATTRIBUTE_NAME = "WillSetAttribute";
@@ -309,11 +309,11 @@ internal sealed class DidSetAttribute : Attribute {
 
 			PropertyAccessibility propertyAccessibility = PropertyAccessibility.Public;
 			if (propertyAccessibilityAttributeData != null) {
-				propertyAccessibility = (PropertyAccessibility)(propertyAccessibilityAttributeData.GetConstructorArgument("PropertyAccessibilityAttribute.Accessibility")?.GetIntValue() ?? (int)PropertyAccessibility.Public);
+				propertyAccessibility = (PropertyAccessibility)(propertyAccessibilityAttributeData.GetConstructorArgument("PropertyAccessibilityAttribute.Accessibility")?.GetIntValue() ?? (int)propertyAccessibility);
 			}
 			PropertyModifier propertyModifier = PropertyModifier.None;
 			if (propertyModifierAttributeData != null) {
-				propertyModifier = (PropertyModifier)(propertyModifierAttributeData.GetConstructorArgument("PropertyModifierAttribute.Modifier")?.GetIntValue() ?? (int)PropertyModifier.None);
+				propertyModifier = (PropertyModifier)(propertyModifierAttributeData.GetConstructorArgument("PropertyModifierAttribute.Modifier")?.GetIntValue() ?? (int)propertyModifier);
 			}
 
 			string accessibilityString = propertyAccessibility.Description();
