@@ -149,5 +149,23 @@ namespace Foundation.Generators {
 			value = optional.GetValueOrDefault();
 			return optional.HasValue;
 		}
+
+		// MARK: - Throwing
+
+		public static T? TryReturnStruct<T>(Func<T> function) where T : struct {
+			try {
+				return function();
+			} catch {
+				return null;
+			}
+		}
+
+		public static T TryReturnClass<T>(Func<T> function) where T : class {
+			try {
+				return function();
+			} catch {
+				return null;
+			}
+		}
 	}
 }

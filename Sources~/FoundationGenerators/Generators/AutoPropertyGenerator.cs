@@ -131,9 +131,9 @@ internal sealed class AutoPropertyAttribute : Attribute {
 				=> ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default)
 			);
 
-			AccessLevel accessLevel = (AccessLevel)attributeData.GetNamedArgumentStruct("accessLevel", (int)AccessLevel.Public);
-			AccessModifier accessModifier = (AccessModifier)attributeData.GetNamedArgumentStruct("accessModifier", (int)AccessModifier.None);
-			Mutability mutability = (Mutability)attributeData.GetNamedArgumentStruct("mutability", (int)Mutability.Get);
+			PropertyAccessibility accessLevel = (PropertyAccessibility)attributeData.GetNamedArgumentStruct("accessLevel", (int)PropertyAccessibility.Public);
+			PropertyModifier accessModifier = (PropertyModifier)attributeData.GetNamedArgumentStruct("accessModifier", (int)PropertyModifier.None);
+			PropertyMutability mutability = (PropertyMutability)attributeData.GetNamedArgumentStruct("mutability", (int)PropertyMutability.Get);
 
 			string onChangeFunction = attributeData.GetNamedArgumentClass<string>("onChange");
 			string willSetFunction = attributeData.GetNamedArgumentClass<string>("willSet");
@@ -155,35 +155,49 @@ internal sealed class AutoPropertyAttribute : Attribute {
 				processor |= ProcessorFlag.DidSet;
 			}
 
-			source.Append($"public const string {fieldName}_AutoPropertyInfo = \"Creating [AutoProperty] for {fieldName} : {accessLevelString} {accessModifierString} {fieldType} {promotedFieldName}\";");
+			//source.AppendLine($"public const string {fieldName}_AutoPropertyInfo = \"Creating [AutoProperty] for {fieldName} -> {accessLevelString} {accessModifierString} {fieldType} {promotedFieldName}\";");
 
-			if (processor == ProcessorFlag.None) {
-				if (mutability == Mutability.Get) {
-					source.AppendFormat(FORMAT_GET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName);
-				} else if (mutability == Mutability.Set) {
-					source.AppendFormat(FORMAT_SET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName);
-				} else if (mutability == Mutability.GetSet) {
-					source.AppendFormat(FORMAT_GET_SET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName);
-				} else {
-					source.Append($"public const string {fieldName}ProcessorError = \"Invalid mutability {mutability} for [AutoProperty] {fieldName}\";");
-				}
-			} else if (processor == ProcessorFlag.OnChange) {
-				//source.AppendFormat($"\"Adding OnChange function '{onChangeFunction}' to property {accessLevelString} {accessModifierString} {fieldType} {promotedFieldName}.\"");
-				source.AppendFormat(FORMAT_ONCHANGE, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, onChangeFunction);
-			} else if (processor == ProcessorFlag.WillSet) {
-				source.AppendFormat(FORMAT_WILLSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, willSetFunction);
-			} else if (processor == ProcessorFlag.DidSet) {
-				source.AppendFormat(FORMAT_DIDSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, didSetFunction);
-			} else if (processor == ProcessorFlag.OnChange_WillSet) {
-				source.AppendFormat(FORMAT_ONCHANGE_WILLSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, willSetFunction, onChangeFunction);
-			} else if (processor == ProcessorFlag.OnChange_DidSet) {
-				source.AppendFormat(FORMAT_ONCHANGE_DIDSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, onChangeFunction, didSetFunction);
-			} else if (processor == ProcessorFlag.WillSet_DidSet) {
-				source.AppendFormat(FORMAT_WILLSET_DIDSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, willSetFunction, didSetFunction);
-			} else if (processor == ProcessorFlag.OnChange_WillSet_DidSet) {
-				source.AppendFormat(FORMAT_ONCHANGE_WILLSET_DIDSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, willSetFunction, onChangeFunction, didSetFunction);
-			} else {
-				source.Append($"public const string {fieldName}ProcessorError = \"Invalid processor {processor} for [AutoProperty] on {fieldName}\";");
+			switch (processor) {
+				case ProcessorFlag.None:
+					switch (mutability) {
+						case PropertyMutability.Get:
+							source.AppendFormat(FORMAT_GET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName);
+							break;
+						case PropertyMutability.Set:
+							source.AppendFormat(FORMAT_SET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName);
+							break;
+						case PropertyMutability.GetSet:
+							source.AppendFormat(FORMAT_GET_SET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName);
+							break;
+						default:
+							source.AppendLine($"public const string {fieldName}ProcessorError = \"Invalid mutability {mutability} for [AutoProperty] {fieldName}\";");
+							break;
+					}
+					break;
+				case ProcessorFlag.OnChange:
+					source.AppendFormat(FORMAT_ONCHANGE, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, onChangeFunction);
+					break;
+				case ProcessorFlag.WillSet:
+					source.AppendFormat(FORMAT_WILLSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, willSetFunction);
+					break;
+				case ProcessorFlag.DidSet:
+					source.AppendFormat(FORMAT_DIDSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, didSetFunction);
+					break;
+				case ProcessorFlag.OnChange_WillSet:
+					source.AppendFormat(FORMAT_ONCHANGE_WILLSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, willSetFunction, onChangeFunction);
+					break;
+				case ProcessorFlag.OnChange_DidSet:
+					source.AppendFormat(FORMAT_ONCHANGE_DIDSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, onChangeFunction, didSetFunction);
+					break;
+				case ProcessorFlag.WillSet_DidSet:
+					source.AppendFormat(FORMAT_WILLSET_DIDSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, willSetFunction, didSetFunction);
+					break;
+				case ProcessorFlag.OnChange_WillSet_DidSet:
+					source.AppendFormat(FORMAT_ONCHANGE_WILLSET_DIDSET, accessLevelString, accessModifierString, fieldType, promotedFieldName, fieldName, willSetFunction, onChangeFunction, didSetFunction);
+					break;
+				default:
+					source.AppendLine($"public const string {fieldName}ProcessorError = \"Invalid processor {processor} for [AutoProperty] on {fieldName}\";");
+					break;
 			}
 		}
 
