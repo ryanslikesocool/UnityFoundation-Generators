@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
-using System.Diagnostics;
 
 namespace Foundation.Generators {
 	[Generator]

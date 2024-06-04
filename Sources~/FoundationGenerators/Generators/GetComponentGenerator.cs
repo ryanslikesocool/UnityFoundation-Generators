@@ -8,7 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Foundation.Generators {
 	[Generator]
 	internal sealed class GetComponentGenerator : ISourceGenerator {
-		private const string ATTRIBUTE_NAME = "GetComponentAttribute";
+		public const string ATTRIBUTE_NAME = "GetComponentAttribute";
+		public const string REQUIRED_FUNCTION_NAME = "InitializeComponents";
 
 		private const string FILE_TEXT = @"
 using System;
@@ -57,7 +58,7 @@ internal sealed class GetComponentAttribute : Attribute {
 /// <summary>
 /// Retrieve necessary components.
 /// </summary>
-private void InitializeComponents() {{
+private void {REQUIRED_FUNCTION_NAME}() {{
 ");
 
 					foreach (IFieldSymbol fieldSymbol in fields) {
