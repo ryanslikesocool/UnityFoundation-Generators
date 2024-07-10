@@ -9,12 +9,10 @@ namespace Foundation.Generators {
 using System;
 
 /// <summary>
-/// Indicates that a function has the potential to throw an exception.
+/// Indicates that a function has the potential to throw an exception that should be caught.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-internal sealed class ThrowsAttribute : Attribute {
-	public ThrowsAttribute() { }
-}
+internal sealed class ThrowsAttribute : Attribute { }
 		";
 
 		public void Initialize(GeneratorInitializationContext context) {

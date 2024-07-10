@@ -8,15 +8,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Foundation.Generators {
 	[DiagnosticAnalyzer(LanguageNames.CSharp)]
 	internal sealed class GetComponentAnalyzer : DiagnosticAnalyzer {
-		private const string DiagnosticId = "GetComponentAttributeAnalyzer";
-		private const string Category = "InitializationSafety";
-
 		private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-			DiagnosticId,
-			$"{GetComponentGenerator.REQUIRED_FUNCTION_NAME} method should be called",
-			$"{GetComponentGenerator.REQUIRED_FUNCTION_NAME} method should be called",
-			Category,
-			DiagnosticSeverity.Warning,
+			id: "GetComponentAttributeAnalyzer",
+			title: $"{GetComponentGenerator.REQUIRED_FUNCTION_NAME} method should be called",
+			messageFormat: $"{GetComponentGenerator.REQUIRED_FUNCTION_NAME} method should be called",
+			category: "InitializationSafety",
+			defaultSeverity: DiagnosticSeverity.Warning,
 			isEnabledByDefault: true,
 			description: $"{GetComponentGenerator.REQUIRED_FUNCTION_NAME} method should be called",
 			helpLinkUri: string.Empty
@@ -35,23 +32,25 @@ namespace Foundation.Generators {
 			FieldDeclarationSyntax fieldDeclarationSyntax = (FieldDeclarationSyntax)context.Node;
 			IFieldSymbol fieldSymbol = (IFieldSymbol)context.ContainingSymbol;
 
-			if (HasGetComponentAttribute(fieldSymbol)) {
-				SyntaxNode classNode = fieldSymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-
-				foreach (InvocationExpressionSyntax expressionSyntax in classNode.DescendantNodes().OfType<InvocationExpressionSyntax>()) {
-					IMethodSymbol methodSymbol = context.SemanticModel.GetSymbolInfo(expressionSyntax).Symbol as IMethodSymbol;
-
-					if (methodSymbol == null) {
-						continue;
-					}
-					if (methodSymbol.Name == GetComponentGenerator.REQUIRED_FUNCTION_NAME) {
-						return;
-					}
-				}
-
-				Diagnostic diagnostic = Diagnostic.Create(Rule, fieldDeclarationSyntax.GetLocation());
-				context.ReportDiagnostic(diagnostic);
+			if (!HasGetComponentAttribute(fieldSymbol)) {
+				return;
 			}
+
+			SyntaxNode classNode = fieldSymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+
+			foreach (InvocationExpressionSyntax expressionSyntax in classNode.DescendantNodes().OfType<InvocationExpressionSyntax>()) {
+				IMethodSymbol methodSymbol = context.SemanticModel.GetSymbolInfo(expressionSyntax).Symbol as IMethodSymbol;
+
+				if (methodSymbol == null) {
+					continue;
+				}
+				if (methodSymbol.Name == GetComponentGenerator.REQUIRED_FUNCTION_NAME) {
+					return;
+				}
+			}
+
+			Diagnostic diagnostic = Diagnostic.Create(Rule, fieldDeclarationSyntax.GetLocation());
+			context.ReportDiagnostic(diagnostic);
 		}
 
 		private static bool HasGetComponentAttribute(ISymbol fieldSymbol)

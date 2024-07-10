@@ -33,9 +33,7 @@ using System;
 /// <seealso cref=""WillSetAttribute""/>
 /// <seealso cref=""DidSetAttribute""/>
 [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-internal sealed class GetAttribute : Attribute {
-	public GetAttribute() { }
-}
+internal sealed class GetAttribute : Attribute { }
 
 /// <summary>
 /// Generate a setter property.
@@ -48,9 +46,7 @@ internal sealed class GetAttribute : Attribute {
 /// <seealso cref=""WillSetAttribute""/>
 /// <seealso cref=""DidSetAttribute""/>
 [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-internal sealed class SetAttribute : Attribute {
-	public SetAttribute() { }
-}
+internal sealed class SetAttribute : Attribute { }
 
 /// <summary>
 /// Indicates that a property created with <see cref=""GetAttribute""/> and/or <see cref=""SetAttribute""/> should use a custom name.

@@ -34,14 +34,17 @@ internal sealed class SingletonAttribute : Attribute {
 	}
 
 	/// <summary>
-	/// The stage in which to initialize the singleton.
+	/// Declares a lazily-loaded singleton.
 	/// </summary>
-	/// <remarks>
-	/// Set this value to <see langword=""null""/> to load lazily.
-	/// </remarks>
-	public RuntimeInitializeLoadType? loadType { get; set; }
-
 	public SingletonAttribute() { }
+
+	/// <summary>
+	/// Declares an explicitly-loaded singleton.
+	/// </summary>
+	/// <param name=""loadType"">
+	/// The stage in which to initialize the singleton.
+	/// </param>
+	public SingletonAttribute(RuntimeInitializeLoadType loadType) { }
 }
 		";
 
@@ -113,10 +116,9 @@ internal sealed class SingletonAttribute : Attribute {
 					context.Node is TypeDeclarationSyntax typeDeclarationSyntax
 					&& typeDeclarationSyntax.AttributeLists.Count > 0
 				) {
-					INamedTypeSymbol typeSymbol = context.SemanticModel.GetDeclaredSymbol(typeDeclarationSyntax) as INamedTypeSymbol;
-
 					if (
-						!(typeSymbol?.BaseType.IsDerivedFrom("MonoBehaviour") ?? true)
+						context.SemanticModel.GetDeclaredSymbol(typeDeclarationSyntax) is INamedTypeSymbol typeSymbol
+						&& !typeSymbol.BaseType.IsDerivedFrom("MonoBehaviour")
 						&& typeSymbol.GetAttributes().Any(ad => ad.AttributeClass.ToDisplayString() == ATTRIBUTE_NAME)
 					) {
 						Types.Add(typeSymbol);
