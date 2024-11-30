@@ -29,5 +29,15 @@ namespace Foundation.Generators {
 				return $"{fieldName[0].ToString().ToUpper()}{fieldName.Substring(1)}";
 			}
 		}
+
+		public static string FormatGeneratedCSFileName(string prefix) {
+			const string generatedFileNameFormat = "{0}_gen.cs";
+			return string.Format(generatedFileNameFormat, prefix);
+		}
+
+		public static void RegisterPostInitializationCSFileGeneration(this ref GeneratorInitializationContext context, in string fileNamePrefix, string fileContent) {
+			string attributeFileName = FormatGeneratedCSFileName(fileNamePrefix);
+			context.RegisterForPostInitialization(i => i.AddSource(attributeFileName, fileContent));
+		}
 	}
 }

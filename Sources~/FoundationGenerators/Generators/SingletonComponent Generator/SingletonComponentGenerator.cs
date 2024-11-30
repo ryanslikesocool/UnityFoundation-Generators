@@ -7,36 +7,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Foundation.Generators {
 	[Generator]
-	internal sealed class SingletonComponentGenerator : ISourceGenerator {
+	internal sealed partial class SingletonComponentGenerator : ISourceGenerator {
 		private const string ATTRIBUTE_NAME = "SingletonComponentAttribute";
 
-		private const string FILE_TEXT = @"
-using System;
-
-/// <summary>
-/// Mark a component as a singleton, generating a shared instance accessible from anywhere in C#.
-/// </summary>
-[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
-internal sealed class SingletonComponentAttribute : Attribute {
-	/// <summary>
-	/// Should the component and GameObject persist between scenes?
-	/// </summary>
-	/// <remarks>
-	/// This uses <c>DontDestroyOnLoad(this.gameObject);</c> internally.
-	/// </remarks>
-	public bool persistent { get; set; }
-
-	/// <summary>
-	/// Should a GameObject with this component automatically be created if a shared instance cannot be found?
-	/// </summary>
-	public bool auto { get; set; }
-
-	public SingletonComponentAttribute() { }
-}
-		";
-
 		public void Initialize(GeneratorInitializationContext context) {
-			context.RegisterForPostInitialization(i => i.AddSource($"{ATTRIBUTE_NAME}_gen.cs", FILE_TEXT));
+			AttributeFileGenerator.Register(ref context);
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 		}
 
@@ -64,9 +39,6 @@ internal sealed class SingletonComponentAttribute : Attribute {
 					bool auto = attributeData.GetNamedArgumentStruct("auto", false);
 
 					{ // getter
-					  // TODO: for some reason, Unity version preprocessor gets compiled out
-					  // (always evaluates to 'false' since define doesn't exist in code-gen land?)
-
 						instance.source.AppendLine($@"
 	private static {typeSymbol.Name} _shared = default;
 

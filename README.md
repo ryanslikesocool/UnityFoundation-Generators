@@ -18,4 +18,4 @@ https://github.com/ryanslikesocool/UnityFoundation-Generators.git
 ```
 
 ## Known Issues
-- Nested objects are not supported.
+- Property-generating attributes do not support nested objects.

@@ -7,34 +7,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Foundation.Generators {
 	[Generator]
-	internal sealed class GetComponentGenerator : ISourceGenerator {
+	internal sealed partial class GetComponentGenerator : ISourceGenerator {
 		public const string ATTRIBUTE_NAME = "GetComponentAttribute";
 		public const string REQUIRED_FUNCTION_NAME = "InitializeComponents";
 
-		private const string FILE_TEXT = @"
-using System;
-
-/// <summary>
-/// Automatically assign components on a <c>MonoBehaviour</c>.
-/// <remarks>
-/// You must call <c>InitializeComponents()</c> on the <c>MonoBehaviour</c> for components to be assigned.
-/// </remarks>
-/// </summary>
-[AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-internal sealed class GetComponentAttribute : Attribute {
-	public enum TargetType {
-		This = 0,
-		Parent = 1,
-		Child = 2
-	}
-
-	/// <param name=""targetType"">The object the component is attached to, relative to <c>this.gameObject</c>.</param>
-	public GetComponentAttribute(TargetType targetType = TargetType.This) { }
-}
-		";
-
 		public void Initialize(GeneratorInitializationContext context) {
-			context.RegisterForPostInitialization(i => i.AddSource($"{ATTRIBUTE_NAME}_gen.cs", FILE_TEXT));
+			AttributeFileGenerator.Register(ref context);
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 		}
 
