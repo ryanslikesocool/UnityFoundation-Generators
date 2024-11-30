@@ -64,6 +64,9 @@ internal sealed class SingletonComponentAttribute : Attribute {
 					bool auto = attributeData.GetNamedArgumentStruct("auto", false);
 
 					{ // getter
+					  // TODO: for some reason, Unity version preprocessor gets compiled out
+					  // (always evaluates to 'false' since define doesn't exist in code-gen land?)
+
 						instance.source.AppendLine($@"
 	private static {typeSymbol.Name} _shared = default;
 
@@ -73,7 +76,11 @@ internal sealed class SingletonComponentAttribute : Attribute {
 	public static {typeSymbol.Name} Shared {{
 		get {{
 			if (_shared == null) {{
+#if UNITY_2023_1_OR_NEWER
+				{typeSymbol.Name} newShared = GameObject.FindAnyObjectByType<{typeSymbol.Name}>();
+#else
 				{typeSymbol.Name} newShared = GameObject.FindObjectOfType<{typeSymbol.Name}>();
+#endif
 				if (newShared != null) {{
 					newShared.InitializeSingleton();
 				}}
@@ -84,6 +91,7 @@ internal sealed class SingletonComponentAttribute : Attribute {
 							instance.source.AppendLine($@"
 	if (_shared == null) {{
 		GameObject singletonObject = new GameObject();
+		singletonObject.hideFlags = HideFlags.HideAndDontSave;
 		singletonObject.name = ""Singleton<{typeSymbol.Name}>"";
 
 		_shared = singletonObject.AddComponent<{typeSymbol.Name}>();

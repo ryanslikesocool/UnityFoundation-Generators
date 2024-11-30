@@ -1,15 +1,14 @@
 {
-  "name": "com.developedwithlove.foundation.generators",
-  "displayName": "Unity Foundation - Generators",
-  "version": "0.1.0-pre.1",
-  "unity": "2022.3",
-  "description": "Code generation attributes for Unity + C#.",
-  "documentationUrl": "https://github.com/ryanslikesocool/UnityFoundation-Generators",
-  "licenseUrl": "https://github.com/ryanslikesocool/UnityFoundation-Generators/blob/main/LICENSE.md",
-  "author": {
-    "name": "Ryan Boyer",
-    "email": "ryanjboyer@gmail.com",
-    "url": "http://ryanjboyer.com/"
-  },
-  "type": "library"
+	"name": "com.developedwithlove.foundation.generators",
+	"displayName": "Unity Foundation - Generators",
+	"version": "0.1.0-pre.1",
+	"unity": "2022.3",
+	"description": "Code generation attributes for Unity + C#.",
+	"documentationUrl": "https://github.com/ryanslikesocool/UnityFoundation-Generators",
+	"licenseUrl": "https://github.com/ryanslikesocool/UnityFoundation-Generators/blob/main/LICENSE.md",
+	"author": {
+		"name": "Ryan Boyer",
+		"url": "https://ryanjboyer.com/"
+	},
+	"type": "library"
 }
