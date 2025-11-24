@@ -1,11 +1,16 @@
-using Microsoft.CodeAnalysis;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace Foundation.Generators {
 	internal static partial class Extensions {
 		public static AttributeData GetAttribute(this System.Collections.Immutable.ImmutableArray<AttributeData> attributes, ISymbol symbol)
 			=> attributes.Single(ad => ad.AttributeClass.Equals(symbol, SymbolEqualityComparer.Default));
+
+		public static bool TryGetAttribute(this System.Collections.Immutable.ImmutableArray<AttributeData> attributes, ISymbol symbol, out AttributeData attributeData) {
+			attributeData = Extensions.TryReturnClass(() => attributes.GetAttribute(symbol));
+			return attributeData != null;
+		}
 
 		// MARK: - Constructor Argument
 
