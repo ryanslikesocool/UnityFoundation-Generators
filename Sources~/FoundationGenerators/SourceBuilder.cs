@@ -1,5 +1,6 @@
-using System.Text;
 using System;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace Foundation.Generators {
@@ -48,7 +49,15 @@ namespace Foundation.Generators {
 			Action<StringBuilder> contentBuilder
 		) {
 			instance.MatchNamespace(typeSymbol, _ => {
-				instance.source.AppendLine($"{typeSymbol.DeclaredAccessibility.Description()} partial {typeSymbol.TypeKind.Description().ToLower()} {typeSymbol.Name} {{");
+				string finalTypeSymbol;
+				if (typeSymbol.TypeParameters.IsDefaultOrEmpty) {
+					finalTypeSymbol = typeSymbol.Name;
+				} else {
+					string typeParameters = string.Join(", ", typeSymbol.TypeParameters);
+					finalTypeSymbol = $"{typeSymbol.Name}<{typeParameters}>";
+				}
+
+				instance.source.AppendLine($"{typeSymbol.DeclaredAccessibility.Description()} partial {typeSymbol.TypeKind.Description().ToLower()} {finalTypeSymbol} {{");
 				contentBuilder(instance.source);
 				instance.source.AppendLine("}");
 			});
